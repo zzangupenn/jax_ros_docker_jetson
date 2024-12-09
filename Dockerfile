@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/jax:24.04-py3
+FROM dustynv/jax:r36.4.0
 
 RUN locale
 RUN apt update && apt install locales -y
@@ -15,6 +15,17 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt install python3-colcon-common-extensions -y
 RUN lsb_release -a
 RUN apt install ros-humble-desktop -y
-RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 
-COPY ./test.py /workspace
+# default root user won't work with user outside of the docker in ROS
+RUN useradd -m -d /home/docker -u 1000 docker
+USER root
+RUN chown -R docker:docker /workspace
+USER 1000:1000
+ENV PATH="${PATH}:/home/user/.local/bin"
+
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+RUN echo "PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$ '" >> ~/.bashrc
+
+WORKDIR /workspace
+ENTRYPOINT ["bash", "-l"]
+

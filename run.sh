@@ -7,7 +7,10 @@ docker run -it --rm \
  --runtime=nvidia \
  -e DISPLAY=$DISPLAY \
  -v $XSOCK:$XSOCK \
+ -v /home/nvidia:/workspace/home \
  --privileged \
  --net=host \
- --shm-size=1g \
- jax_ros /usr/bin/bash
+ --ipc=host \
+ --pid=host \
+ --shm-size=500M \
+ zzang2/jax_ros:humble_jax0.4.35
