@@ -1,5 +1,7 @@
 import os
-os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"]="true"
+os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
+#os.environ["XLA_PYTHON_CLIENT_MEM_FRACTION"] = ".2"
+#os.environ["JAX_LOG_COMPILES"] = "1"
 import jax
 import time
 # from jax_utils import oneLineJaxRNG
@@ -29,23 +31,25 @@ x = jax.numpy.arange(100000000)
 # gpu:0
 x_gpu = my_function_gpu(x)
 start_time = time.time()
-x_gpu = my_function_gpu(x)
+for i in range(10):
+    x_gpu = my_function_gpu(x)
 print(x_gpu.devices(), time.time() - start_time)
-
 # TFRT_CPU_0
 x_cpu = my_function_cpu(x)
 start_time = time.time()
-x_cpu = my_function_cpu(x)
+for i in range(10):
+    x_cpu = my_function_cpu(x)
 print(x_cpu.devices(), time.time() - start_time)
-
 jrng = oneLineJaxRNG()
 n_steps = 8
-reward = jax.random.normal(jrng.new_key(), shape=(16, n_steps))
+reward = jax.random.normal(jrng.new_key(), shape=(8, n_steps))
 accum_matrix = jnp.triu(jnp.ones((n_steps, n_steps)))
 def returns(r):
     # r: [n_steps]
     return jnp.dot(accum_matrix, r)  # R: [n_steps]
-print('accum_matrix', accum_matrix)
-print('hi')
-R = jax.vmap(returns)(reward)
-print(R)
+print('testing cublas')
+R = returns(reward)
+print('testing vmap')
+vmap_func = jax.vmap(returns)
+R = vmap_func(reward)
+print('test good')
